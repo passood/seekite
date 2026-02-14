@@ -65,14 +65,25 @@ export default function TopicsPage() {
   return (
     <div className="flex flex-col min-h-dvh">
       <header className="flex items-center justify-between px-5 py-4 border-b border-border">
+        <button
+          onClick={async () => {
+            await fetch('/api/auth/logout', { method: 'POST' });
+            router.push('/');
+          }}
+          className="text-sm text-foreground/40 hover:text-foreground/70 transition-colors"
+        >
+          로그아웃
+        </button>
         <h1 className="text-xl font-bold text-primary">Seekite</h1>
-        {member?.is_leader && (
+        {member?.is_leader ? (
           <button
             onClick={() => router.push('/topics/new')}
             className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center text-xl leading-none"
           >
             +
           </button>
+        ) : (
+          <div className="w-9" />
         )}
       </header>
 
