@@ -49,3 +49,48 @@ export async function GET(
     );
   }
 }
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const auth = await getAuthUser();
+    if (!auth) {
+      return NextResponse.json(
+        { error: '로그인이 필요합니다' },
+        { status: 401 }
+      );
+    }
+
+    const { id } = await params;
+
+    const result = await sql`
+      SELECT id, created_by FROM topics WHERE id = ${id}
+    `;
+
+    if (result.rows.length === 0) {
+      return NextResponse.json(
+        { error: '말씀 주제를 찾을 수 없습니다' },
+        { status: 404 }
+      );
+    }
+
+    if (result.rows[0].created_by !== auth.memberId) {
+      return NextResponse.json(
+        { error: '삭제 권한이 없습니다' },
+        { status: 403 }
+      );
+    }
+
+    await sql`DELETE FROM topics WHERE id = ${id}`;
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Topic delete error:', error);
+    return NextResponse.json(
+      { error: '삭제 중 오류가 발생했습니다' },
+      { status: 500 }
+    );
+  }
+}

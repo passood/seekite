@@ -62,6 +62,7 @@ export default function TopicDetailPage() {
   const [error, setError] = useState('');
   const [reactionMenuId, setReactionMenuId] = useState<string | null>(null);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -265,7 +266,38 @@ export default function TopicDetailPage() {
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
-        <h1 className="text-base font-semibold truncate">{topic.title}</h1>
+        <h1 className="text-base font-semibold truncate flex-1">{topic.title}</h1>
+        {member && topic.created_by === member.id && (
+          <button
+            onClick={async () => {
+              if (deleting) return;
+              if (!confirm('이 대화방을 삭제하시겠습니까?')) return;
+              setDeleting(true);
+              try {
+                const res = await fetch(`/api/topics/${topicId}`, { method: 'DELETE' });
+                if (res.ok) {
+                  router.push('/topics');
+                } else {
+                  alert('삭제에 실패했습니다');
+                  setDeleting(false);
+                }
+              } catch {
+                alert('삭제 중 오류가 발생했습니다');
+                setDeleting(false);
+              }
+            }}
+            disabled={deleting}
+            className="p-1 text-foreground/40 hover:text-red-500 transition-colors disabled:opacity-30"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+              <path d="M10 11v6" />
+              <path d="M14 11v6" />
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+            </svg>
+          </button>
+        )}
       </header>
 
       {/* Scripture Card */}
