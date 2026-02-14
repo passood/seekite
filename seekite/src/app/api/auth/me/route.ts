@@ -13,7 +13,7 @@ export async function GET() {
     }
 
     const result = await sql`
-      SELECT id, name, color, is_leader FROM members WHERE id = ${auth.memberId}
+      SELECT id, name, color, is_leader, created_at FROM members WHERE id = ${auth.memberId}
     `;
 
     if (result.rows.length === 0) {
