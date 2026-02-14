@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import type { Topic, Message, Member } from '@/lib/types';
+import { useMessagePolling } from '@/hooks/useMessagePolling';
 
 function getRelativeTime(dateStr: string): string {
   const now = Date.now();
@@ -63,11 +64,32 @@ export default function TopicDetailPage() {
   const [replyTo, setReplyTo] = useState<Message | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const initialLoadRef = useRef(true);
+
+  const isNearBottom = useCallback(() => {
+    const el = messagesContainerRef.current;
+    if (!el) return true;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+  }, []);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
+
+  useMessagePolling(
+    topicId,
+    messages,
+    (newMessages) => {
+      const shouldScroll = isNearBottom();
+      setMessages(newMessages);
+      if (shouldScroll) {
+        setTimeout(scrollToBottom, 100);
+      }
+    },
+    !loading
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -112,8 +134,11 @@ export default function TopicDetailPage() {
   }, [topicId, router]);
 
   useEffect(() => {
-    if (!loading && messages.length > 0) {
-      scrollToBottom();
+    if (!loading && initialLoadRef.current) {
+      initialLoadRef.current = false;
+      if (messages.length > 0) {
+        scrollToBottom();
+      }
     }
   }, [loading, messages.length, scrollToBottom]);
 
@@ -260,7 +285,7 @@ export default function TopicDetailPage() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-2">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto px-4 py-2">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-foreground/30 text-sm">
