@@ -267,7 +267,7 @@ export default function TopicDetailPage() {
           </svg>
         </button>
         <h1 className="text-base font-semibold truncate flex-1">{topic.title}</h1>
-        {member && topic.created_by === member.id && (
+        {member && (
           <button
             onClick={async () => {
               if (deleting) return;

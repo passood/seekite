@@ -65,25 +65,14 @@ export async function DELETE(
 
     const { id } = await params;
 
-    const result = await sql`
-      SELECT id, created_by FROM topics WHERE id = ${id}
-    `;
+    const result = await sql`DELETE FROM topics WHERE id = ${id}`;
 
-    if (result.rows.length === 0) {
+    if (result.rowCount === 0) {
       return NextResponse.json(
         { error: '말씀 주제를 찾을 수 없습니다' },
         { status: 404 }
       );
     }
-
-    if (result.rows[0].created_by !== auth.memberId) {
-      return NextResponse.json(
-        { error: '삭제 권한이 없습니다' },
-        { status: 403 }
-      );
-    }
-
-    await sql`DELETE FROM topics WHERE id = ${id}`;
 
     return NextResponse.json({ success: true });
   } catch (error) {
