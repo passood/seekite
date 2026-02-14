@@ -53,13 +53,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!auth.isLeader) {
-      return NextResponse.json(
-        { error: '리더만 말씀 주제를 등록할 수 있습니다' },
-        { status: 403 }
-      );
-    }
-
     const { title, bible_ref, bible_text, question, worship_date } = await request.json();
 
     if (!title || !bible_ref || !bible_text || !worship_date) {
