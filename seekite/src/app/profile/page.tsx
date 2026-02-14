@@ -10,6 +10,7 @@ export default function ProfilePage() {
   const [member, setMember] = useState<Member | null>(null);
   const [loading, setLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -26,6 +27,25 @@ export default function ProfilePage() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [router]);
+
+  const handleWithdraw = async () => {
+    if (!confirm('정말 탈퇴하시겠습니까? 작성한 메시지와 리액션이 모두 삭제되며, 이 작업은 되돌릴 수 없습니다.')) {
+      return;
+    }
+    setWithdrawing(true);
+    try {
+      const res = await fetch('/api/auth/withdraw', { method: 'DELETE' });
+      if (res.ok) {
+        router.push('/');
+      } else {
+        alert('탈퇴 처리 중 오류가 발생했습니다.');
+        setWithdrawing(false);
+      }
+    } catch {
+      alert('탈퇴 처리 중 오류가 발생했습니다.');
+      setWithdrawing(false);
+    }
+  };
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -88,6 +108,14 @@ export default function ProfilePage() {
           className="w-full py-3 rounded-2xl border border-red-200 text-red-500 text-sm font-medium hover:bg-red-50 transition-colors disabled:opacity-50"
         >
           {loggingOut ? '로그아웃 중...' : '로그아웃'}
+        </button>
+
+        <button
+          onClick={handleWithdraw}
+          disabled={withdrawing}
+          className="w-full mt-4 py-2 text-foreground/30 text-xs underline hover:text-foreground/50 transition-colors disabled:opacity-50"
+        >
+          {withdrawing ? '탈퇴 처리 중...' : '회원 탈퇴'}
         </button>
       </main>
 
